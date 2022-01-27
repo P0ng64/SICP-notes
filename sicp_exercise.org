@@ -1,0 +1,140 @@
+#+TITLE: SICP exercises
+#+author: Zhipeng Bao
+#+date: 2022-01-08
+
+* Chapter 1
+** Exercise 1.1
+对于下列每个表达式, 解释器将输出什么结果?
+#+begin_src racket :lang sicp
+  10 ;; 10
+  (+ 5 3 4) ;; 12
+  (- 9 1) ;; 8
+  (/ 6 2) ;; 3
+  (+ (* 2 4) (- 4 6)) ;; 6
+  (define a 3) ;; 
+  (define b (+ a 1)) ;; 
+  (+ a b (* a b)) ;; 19
+  (= a b) ;; nil
+  (if (and (> b a) (< b (* a b))) 
+      b
+      a) ;; 4
+  (cond ((= a 4) 6)
+        ((= b 4) (+ 6 7 a))
+        (else 25)) ;; 16
+  (+ 2 (if (> b a) b a)) ;; 6
+  (* (cond ((> a b) a)
+           ((< a b) b)
+           (else -1))
+     (+ a 1)) ;; 16
+#+end_src
+** Exercise 1.2
+请将下面表达式变换为前缀形式:
+$$\frac{5+4+(2-(3-(6+\frac{4}{5})))}{3(6-2)(2-7)$$
+#+begin_src racket :lang sicp
+  (/ (+ 5
+        4
+        (- 2 (- 3 (+ 6 (/ 4 5)))))
+     (* 3
+        (- 6 2)
+        (- 2 7)))
+#+end_src
+** Exercise 1.3
+请定义一个过程, 它以三个数为参数, 返回其中较大的两个数之和. 
+#+begin_src racket :lang sicp
+  (define (sum-of-largest-two x y z)
+    (cond ((and (>= x z) (>= y z)) (+ x y))
+          ((and (>= x y) (>= z y)) (+ x z))
+          (else (+ y z))))
+
+  (sum-of-largest-two 1 2 3)
+#+end_src
+
+#+RESULTS:
+: 5
+** Exercise 1.4
+描述下面过程的行为: 
+#+begin_src racket :lang sicp
+  (define (a-plus-abs-b a b)
+    ;; 该表达式返回作用于 a b 的运算符
+    ((if (> b 0) ;; 若 b 为正数
+         + ;; 返回 +
+         -) ;; 返回 -
+     a b))
+#+end_src
+** Exercise 1.5
+Ben Bitdiddle 为了确定解释器应用应用序或正则序求值, 定义了下面两个过程: 
+#+begin_src racket :lang sicp
+  (define (p) (p))
+  (define (test x y)
+    (if (= x 0)
+        0
+        y))
+  ;; 而后他求值表达式
+  (test 0 (p))
+#+end_src
+请解释不同实现的解释器的行为. 
+
+应用序解释器: 
+进入死循环. 
+#+begin_src racket :lang sicp
+  (test 0 (p)) ;; p 在此无限展开
+#+end_src
+
+正则序解释器: 
+返回 =0=. 
+#+begin_src racket :lang sicp
+  (if (= 0 0)
+      0
+      (p))
+#+end_src
+** Exercise 1.6
+Alyssa P. Hacker 和朋友 Eva Lu Ator 用 =cond= 将 =if= 重新定义为一个常规过程: 
+#+begin_src racket :lang sicp
+  (define (new-if predicate then-clause else-clause)
+    (cond (predicate then-clause)
+          (else else-clause)))
+
+  (define (new-sqrt-iter guess x)
+    (new-if (good-enough? guess x)
+            guess
+            (new-sqrt-iter (improve guess x)
+                       x)))
+#+end_src
+
+当 Allyssa 尝试用 =new-if= 去计算平方根时会发生什么事情? 请给出解释. 
+
+由于如今的解释器实现为应用序, 在求取 =new-if= 的值前会先求取其参数的值,.
+注意到 =new-sqrt-iter= 为递归过程, 在求取其值的过程中会改变 =guess= 的值, 这使得运算结果可能不正确.
+** Exercise 1.7
+注意到在计算机中, 算术运算总是以优先精度运行的. 实现 =good-enough= 的另一种策略是监视猜测值在从一次迭代到下一次迭代的变化情况, 当改变值相对于猜测值的比例很小的时候就结束. 请设计一种基于此的过程: 
+#+begin_src racket :lang sicp
+  (define (sqrt-iter guess old-guess x)
+    (if (good-enough? guess old-guess)
+        guess
+        (sqrt-iter (improve guess x)
+                   guess
+                   x)))
+  (define (good-enough? guess old-guess)
+    (< (abs (- guess old-guess))
+       (* guess 0.001)))
+#+end_src
+** Exercise 1.8
+根据下式实现一个求立方根的过程:
+$$\frac{\frac{x}{y^2}+2y}{3}$$
+#+begin_src racket :lang sicp
+  (define (cube-root-iter guess old-guess x)
+    (if (good-enough? guess old-guess)
+        guess
+        (cube-root-iter (improve guess x)
+                        guess
+                        x)))
+  (define (good-enough? guess old-guess)
+    (< (abs (- guess old-guess))
+       (* guess 0.001)))
+
+  (define (improve guess x)
+    (/ (+ (/ x (* guess guess))
+          (* 2 guess))
+       3))
+#+end_src
+** Exercise 1.9
